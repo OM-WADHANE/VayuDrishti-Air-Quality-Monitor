@@ -1,0 +1,490 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="description" content="VayuDrishti — Real-time Air Quality Intelligence Dashboard" />
+  <title>VayuDrishti — Air Quality Intelligence</title>
+
+  <!-- Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;600;700;800;900&family=Syne:wght@400;500;600;700;800&family=JetBrains+Mono:wght@300;400;500;600&display=swap" rel="stylesheet" />
+
+  <!-- Stylesheet -->
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+
+  <!-- ╔══════════════════════════════╗ -->
+  <!-- ║   AMBIENT BACKGROUND LAYER  ║ -->
+  <!-- ╚══════════════════════════════╝ -->
+  <div class="bg-scene" aria-hidden="true">
+    <div class="orb orb--1"></div>
+    <div class="orb orb--2"></div>
+    <div class="orb orb--3"></div>
+    <div class="orb orb--4"></div>
+    <div class="grid-overlay"></div>
+    <div class="noise-overlay"></div>
+    <div class="scanline-overlay"></div>
+  </div>
+
+  <!-- ╔══════════════════════════════╗ -->
+  <!-- ║         APP WRAPPER         ║ -->
+  <!-- ╚══════════════════════════════╝ -->
+  <div class="app-wrapper">
+
+    <!-- ── NAV / HEADER ──────────────────────────── -->
+    <header class="site-header">
+      <div class="header-brand">
+        <div class="brand-icon" aria-hidden="true">
+          <svg viewBox="0 0 44 44" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <circle cx="22" cy="22" r="20" stroke="url(#brandGrad)" stroke-width="2"/>
+            <path d="M10 22 Q18 12 22 22 Q26 32 34 22" stroke="url(#brandGrad)" stroke-width="2.5" stroke-linecap="round" fill="none"/>
+            <circle cx="22" cy="22" r="3" fill="url(#brandGrad)"/>
+            <defs>
+              <linearGradient id="brandGrad" x1="0" y1="0" x2="44" y2="44">
+                <stop offset="0%" stop-color="#a78bfa"/>
+                <stop offset="100%" stop-color="#06f6e8"/>
+              </linearGradient>
+            </defs>
+          </svg>
+        </div>
+        <div class="brand-text">
+          <span class="brand-name">VayuDrishti</span>
+          <span class="brand-tagline">Air Quality Intelligence</span>
+        </div>
+      </div>
+
+      <nav class="header-nav">
+        <div class="live-badge">
+          <span class="live-dot"></span>
+          <span>LIVE</span>
+        </div>
+        <div class="header-clock">
+          <span id="js-clock" class="clock-time">--:--:--</span>
+          <span id="js-date" class="clock-date">--- -- ----</span>
+        </div>
+      </nav>
+    </header>
+
+    <!-- ── API KEY SETUP PANEL ─────────────────────── -->
+    <section class="api-setup-panel" id="js-apiPanel">
+      <div class="api-setup-inner">
+        <div class="api-setup-icon">🔑</div>
+        <div class="api-setup-content">
+          <h2 class="api-setup-title">Connect Your Data Source</h2>
+          <p class="api-setup-desc">
+            Enter your free <a href="https://openweathermap.org/api" target="_blank" rel="noopener">OpenWeather API key</a>
+            to unlock real-time air quality data for 200,000+ cities worldwide.
+          </p>
+          <div class="api-input-row">
+            <div class="api-input-wrap">
+              <span class="api-input-icon">🔐</span>
+              <input
+                type="password"
+                id="js-apiKeyInput"
+                class="api-key-input"
+                placeholder="Paste your OpenWeather API key…"
+                autocomplete="off"
+                spellcheck="false"
+              />
+              <button class="api-toggle-visibility" id="js-toggleKey" aria-label="Toggle key visibility">👁</button>
+            </div>
+            <button class="btn btn--primary" id="js-saveKey">
+              <span>Activate</span>
+              <svg viewBox="0 0 20 20" fill="currentColor" width="16"><path fill-rule="evenodd" d="M10.293 3.293a1 1 0 011.414 0l6 6a1 1 0 010 1.414l-6 6a1 1 0 01-1.414-1.414L14.586 11H3a1 1 0 110-2h11.586l-4.293-4.293a1 1 0 010-1.414z" clip-rule="evenodd"/></svg>
+            </button>
+          </div>
+          <p class="api-hint">Your key is stored locally and never sent anywhere else. <button class="btn-link" id="js-clearKey">Clear saved key</button></p>
+        </div>
+      </div>
+    </section>
+
+    <!-- ── SEARCH SECTION ──────────────────────────── -->
+    <section class="search-section">
+      <div class="search-container">
+        <div class="search-input-group">
+          <span class="search-icon" aria-hidden="true">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="18">
+              <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
+            </svg>
+          </span>
+          <input
+            type="text"
+            id="js-cityInput"
+            class="search-input"
+            placeholder="Search city — New Delhi, Mumbai, Tokyo, Paris…"
+            autocomplete="off"
+            spellcheck="false"
+          />
+          <button class="search-clear" id="js-clearInput" aria-label="Clear search">✕</button>
+        </div>
+        <button class="btn btn--primary btn--search" id="js-searchBtn">
+          <span>Analyse</span>
+        </button>
+        <button class="btn btn--ghost btn--locate" id="js-locateBtn" title="Use my location" aria-label="Use my location">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="18">
+            <circle cx="12" cy="12" r="3"/><path d="M19.95 11A8 8 0 118 4.05M12 2v2m0 16v2M2 12h2m16 0h2"/>
+          </svg>
+        </button>
+      </div>
+
+      <!-- Quick City Chips -->
+      <div class="quick-cities" role="list" aria-label="Quick city shortcuts">
+        <span class="quick-label">Quick access:</span>
+        <div class="chips-row">
+          <button class="chip" data-city="Delhi" role="listitem">Delhi</button>
+          <button class="chip" data-city="Mumbai" role="listitem">Mumbai</button>
+          <button class="chip" data-city="Bengaluru" role="listitem">Bengaluru</button>
+          <button class="chip" data-city="Chennai" role="listitem">Chennai</button>
+          <button class="chip" data-city="Kolkata" role="listitem">Kolkata</button>
+          <button class="chip" data-city="Hyderabad" role="listitem">Hyderabad</button>
+          <button class="chip" data-city="Pune" role="listitem">Pune</button>
+          <button class="chip" data-city="Beijing" role="listitem">Beijing</button>
+          <button class="chip" data-city="London" role="listitem">London</button>
+          <button class="chip" data-city="New York" role="listitem">New York</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- ── LOADING STATE ──────────────────────────── -->
+    <div class="state-loading" id="js-loading" aria-live="polite" aria-label="Loading air quality data">
+      <div class="loader-orb">
+        <div class="loader-ring loader-ring--1"></div>
+        <div class="loader-ring loader-ring--2"></div>
+        <div class="loader-ring loader-ring--3"></div>
+        <div class="loader-core">
+          <svg viewBox="0 0 44 44" fill="none" width="24">
+            <path d="M10 22 Q18 12 22 22 Q26 32 34 22" stroke="#06f6e8" stroke-width="2.5" stroke-linecap="round" fill="none"/>
+          </svg>
+        </div>
+      </div>
+      <div class="loader-text">
+        <span id="js-loadingText">Fetching air quality data…</span>
+      </div>
+      <div class="loader-steps">
+        <span class="loader-step active" id="ls-1">Resolving location</span>
+        <span class="loader-step" id="ls-2">Fetching coordinates</span>
+        <span class="loader-step" id="ls-3">Analysing air quality</span>
+      </div>
+    </div>
+
+    <!-- ── ERROR STATE ──────────────────────────── -->
+    <div class="state-error" id="js-error" role="alert">
+      <div class="error-icon">⚠</div>
+      <div class="error-body">
+        <h3 class="error-title">Something went wrong</h3>
+        <p class="error-message" id="js-errorMsg">—</p>
+      </div>
+      <button class="btn btn--ghost btn--sm" id="js-dismissError">Dismiss</button>
+    </div>
+
+    <!-- ── WELCOME STATE ──────────────────────────── -->
+    <div class="state-welcome" id="js-welcome">
+      <div class="welcome-visual" aria-hidden="true">
+        <div class="welcome-earth">🌍</div>
+        <div class="welcome-particles">
+          <div class="particle p--1"></div>
+          <div class="particle p--2"></div>
+          <div class="particle p--3"></div>
+          <div class="particle p--4"></div>
+          <div class="particle p--5"></div>
+          <div class="particle p--6"></div>
+        </div>
+      </div>
+      <h2 class="welcome-title">Know What You Breathe</h2>
+      <p class="welcome-sub">
+        Search any city worldwide for live AQI readings, pollutant breakdowns,
+        and personalised health advisories — powered by OpenWeather data.
+      </p>
+      <div class="welcome-stats">
+        <div class="welcome-stat"><span>200K+</span><label>Cities</label></div>
+        <div class="welcome-stat-divider"></div>
+        <div class="welcome-stat"><span>7</span><label>Pollutants</label></div>
+        <div class="welcome-stat-divider"></div>
+        <div class="welcome-stat"><span>Live</span><label>Real-time</label></div>
+      </div>
+    </div>
+
+    <!-- ═══════════════════════════════════════════════ -->
+    <!--                   DASHBOARD                     -->
+    <!-- ═══════════════════════════════════════════════ -->
+    <main class="dashboard" id="js-dashboard" aria-live="polite">
+
+      <!-- ROW 1 → Hero + Gauge -->
+      <div class="dashboard-row dashboard-row--hero">
+
+        <!-- ─ Main AQI Card ─ -->
+        <div class="card card--hero" id="js-heroCard">
+          <div class="card-shine" aria-hidden="true"></div>
+
+          <div class="hero-top">
+            <div class="hero-location">
+              <div class="location-icon" aria-hidden="true">📍</div>
+              <div>
+                <h1 class="city-name" id="js-cityName">—</h1>
+                <p class="city-meta" id="js-cityMeta">—</p>
+              </div>
+            </div>
+            <div class="hero-timestamp">
+              <span class="timestamp-icon" aria-hidden="true">🕒</span>
+              <span id="js-lastUpdated">—</span>
+            </div>
+          </div>
+
+          <div class="hero-aqi">
+            <div class="aqi-block">
+              <div class="aqi-value-wrap">
+                <span class="aqi-value" id="js-aqiValue">—</span>
+                <span class="aqi-unit">AQI</span>
+              </div>
+              <div class="aqi-badge" id="js-aqiBadge">—</div>
+            </div>
+            <div class="hero-weather-extras" id="js-weatherExtras">
+              <div class="weather-extra" id="js-tempBlock">
+                <span class="we-icon">🌡</span>
+                <span class="we-value" id="js-temp">—</span>
+                <span class="we-label">Temp</span>
+              </div>
+              <div class="weather-extra" id="js-humBlock">
+                <span class="we-icon">💧</span>
+                <span class="we-value" id="js-humidity">—</span>
+                <span class="we-label">Humidity</span>
+              </div>
+              <div class="weather-extra" id="js-windBlock">
+                <span class="we-icon">💨</span>
+                <span class="we-value" id="js-wind">—</span>
+                <span class="we-label">Wind</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="hero-description" id="js-aqiDescription">—</div>
+        </div>
+
+        <!-- ─ Gauge Card ─ -->
+        <div class="card card--gauge">
+          <div class="card-shine" aria-hidden="true"></div>
+          <h2 class="card-title">AQI Meter</h2>
+
+          <div class="gauge-container">
+            <svg class="gauge-svg" viewBox="0 0 280 160" aria-hidden="true">
+              <defs>
+                <linearGradient id="gaugeArcGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+                  <stop offset="0%"   stop-color="#22d45e"/>
+                  <stop offset="25%"  stop-color="#9aff6e"/>
+                  <stop offset="40%"  stop-color="#f5c842"/>
+                  <stop offset="58%"  stop-color="#ff9830"/>
+                  <stop offset="80%"  stop-color="#f04040"/>
+                  <stop offset="100%" stop-color="#8b0000"/>
+                </linearGradient>
+                <filter id="needleGlow">
+                  <feGaussianBlur stdDeviation="2" result="blur"/>
+                  <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
+                </filter>
+              </defs>
+
+              <!-- Background arc -->
+              <path
+                d="M 30 140 A 110 110 0 0 1 250 140"
+                fill="none" stroke="rgba(255,255,255,0.07)" stroke-width="18" stroke-linecap="round"
+              />
+              <!-- Coloured arc -->
+              <path
+                id="js-gaugeArc"
+                d="M 30 140 A 110 110 0 0 1 250 140"
+                fill="none" stroke="url(#gaugeArcGrad)" stroke-width="18" stroke-linecap="round"
+              />
+
+              <!-- Tick marks -->
+              <g id="js-gaugeTicks" opacity="0.4"></g>
+
+              <!-- Scale labels -->
+              <text x="26"  y="158" class="gauge-scale-text">0</text>
+              <text x="102" y="50"  class="gauge-scale-text">100</text>
+              <text x="228" y="158" class="gauge-scale-text">500</text>
+
+              <!-- Needle -->
+              <g id="js-needleGroup" style="transform-origin:140px 140px; transform:rotate(-90deg); transition:transform 1.4s cubic-bezier(0.34,1.56,0.64,1)">
+                <line x1="140" y1="140" x2="140" y2="44" stroke="white" stroke-width="3" stroke-linecap="round" filter="url(#needleGlow)"/>
+                <circle cx="140" cy="140" r="10" fill="rgba(255,255,255,0.15)" stroke="white" stroke-width="2"/>
+                <circle cx="140" cy="140" r="4"  fill="white"/>
+              </g>
+
+              <!-- Center readout -->
+              <text x="140" y="120" id="js-gaugeVal" class="gauge-val-text" text-anchor="middle">—</text>
+              <text x="140" y="136" class="gauge-sub-text" text-anchor="middle">US AQI</text>
+            </svg>
+          </div>
+
+          <div class="dominant-pollutant">
+            <span class="dp-label">Dominant Pollutant</span>
+            <span class="dp-value" id="js-dominantPoll">—</span>
+          </div>
+
+          <!-- AQI Level Bands -->
+          <div class="gauge-bands">
+            <div class="band band--good"><span>Good</span><span>0–50</span></div>
+            <div class="band band--fair"><span>Fair</span><span>51–100</span></div>
+            <div class="band band--mod"><span>Moderate</span><span>101–150</span></div>
+            <div class="band band--poor"><span>Poor</span><span>151–200</span></div>
+            <div class="band band--vpoor"><span>Very Poor</span><span>201+</span></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ROW 2 → Pollutants Grid -->
+      <section class="dashboard-section">
+        <header class="section-header">
+          <div class="section-title-group">
+            <span class="section-accent" aria-hidden="true"></span>
+            <h2 class="section-title">Pollutant Concentrations</h2>
+          </div>
+          <span class="section-badge">μg/m³</span>
+        </header>
+
+        <div class="pollutants-grid" id="js-pollutantsGrid">
+          <!-- Injected by JS -->
+        </div>
+      </section>
+
+      <!-- ROW 3 → AQI Scale Legend -->
+      <section class="dashboard-section">
+        <header class="section-header">
+          <div class="section-title-group">
+            <span class="section-accent" aria-hidden="true"></span>
+            <h2 class="section-title">AQI Color Scale</h2>
+          </div>
+        </header>
+
+        <div class="card scale-card">
+          <div class="card-shine" aria-hidden="true"></div>
+          <div class="scale-bar-wrap">
+            <div class="scale-bar-track">
+              <div class="scale-bar-gradient"></div>
+              <div class="scale-cursor" id="js-scaleCursor" role="presentation">
+                <div class="scale-cursor-line"></div>
+                <div class="scale-cursor-label" id="js-scaleLabel">—</div>
+              </div>
+            </div>
+            <div class="scale-numbers">
+              <span>0</span><span>50</span><span>100</span><span>150</span><span>200</span><span>300</span><span>500</span>
+            </div>
+          </div>
+
+          <div class="scale-legend-grid">
+            <div class="legend-item">
+              <div class="legend-swatch legend-swatch--good"></div>
+              <div class="legend-body">
+                <span class="legend-name">Good</span>
+                <span class="legend-range">0 – 50</span>
+              </div>
+            </div>
+            <div class="legend-item">
+              <div class="legend-swatch legend-swatch--fair"></div>
+              <div class="legend-body">
+                <span class="legend-name">Fair</span>
+                <span class="legend-range">51 – 100</span>
+              </div>
+            </div>
+            <div class="legend-item">
+              <div class="legend-swatch legend-swatch--mod"></div>
+              <div class="legend-body">
+                <span class="legend-name">Moderate</span>
+                <span class="legend-range">101 – 150</span>
+              </div>
+            </div>
+            <div class="legend-item">
+              <div class="legend-swatch legend-swatch--poor"></div>
+              <div class="legend-body">
+                <span class="legend-name">Poor</span>
+                <span class="legend-range">151 – 200</span>
+              </div>
+            </div>
+            <div class="legend-item">
+              <div class="legend-swatch legend-swatch--vpoor"></div>
+              <div class="legend-body">
+                <span class="legend-name">Very Poor</span>
+                <span class="legend-range">201+</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ROW 4 → Health Advisory -->
+      <section class="dashboard-section">
+        <header class="section-header">
+          <div class="section-title-group">
+            <span class="section-accent" aria-hidden="true"></span>
+            <h2 class="section-title">Health Advisory</h2>
+          </div>
+          <span class="section-badge" id="js-healthBadge">—</span>
+        </header>
+
+        <div class="card health-card" id="js-healthCard">
+          <div class="card-shine" aria-hidden="true"></div>
+          <div class="health-card-inner">
+            <div class="health-icon-wrap">
+              <div class="health-icon" id="js-healthIcon">💚</div>
+              <div class="health-icon-ring" id="js-healthIconRing"></div>
+            </div>
+            <div class="health-content">
+              <h3 class="health-title" id="js-healthTitle">—</h3>
+              <p class="health-message" id="js-healthMessage">—</p>
+            </div>
+          </div>
+          <div class="health-tips" id="js-healthTips">
+            <!-- Injected by JS -->
+          </div>
+        </div>
+      </section>
+
+    </main><!-- /dashboard -->
+
+    <!-- ── FOOTER ──────────────────────────── -->
+    <footer class="site-footer">
+      <div class="footer-top">
+        <div class="footer-brand">
+          <span class="footer-logo">VayuDrishti 🌬️</span>
+          <p class="footer-brand-sub">Real-time air quality intelligence for a healthier world.</p>
+        </div>
+        <div class="footer-links-col">
+          <span class="footer-col-label">Connect</span>
+          <a href="mailto:omwadhane.dev@gmail.com" class="footer-link">
+            <span class="footer-link-icon">✉️</span>
+            omwadhane.dev@gmail.com
+          </a>
+          <a href="https://www.linkedin.com/in/om-wadhane/" target="_blank" rel="noopener" class="footer-link">
+            <span class="footer-link-icon">💼</span>
+            LinkedIn — Om Wadhane
+          </a>
+          <a href="https://devomw.netlify.app" target="_blank" rel="noopener" class="footer-link">
+            <span class="footer-link-icon">🌐</span>
+            devomw.netlify.app
+          </a>
+        </div>
+        <div class="footer-links-col">
+          <span class="footer-col-label">Data</span>
+          <a href="https://openweathermap.org/api/air-pollution" target="_blank" rel="noopener" class="footer-link">OpenWeather Air Pollution API</a>
+          <a href="https://openweathermap.org/api" target="_blank" rel="noopener" class="footer-link">Get Free API Key</a>
+          <a href="https://www.who.int/news-room/fact-sheets/detail/ambient-(outdoor)-air-quality-and-health" target="_blank" rel="noopener" class="footer-link">WHO Air Quality Guidelines</a>
+        </div>
+      </div>
+
+      <div class="footer-bottom">
+        <p class="footer-credit">
+          Designed &amp; Developed with <span class="heart">❤️</span> in India by
+          <a href="https://devomw.netlify.app" target="_blank" rel="noopener">Om Wadhane</a>
+        </p>
+        <p class="footer-rights">© <span id="js-year"></span> VayuDrishti. All rights reserved.</p>
+      </div>
+    </footer>
+
+  </div><!-- /app-wrapper -->
+
+  <!-- Script -->
+  <script src="app.js"></script>
+</body>
+</html>
