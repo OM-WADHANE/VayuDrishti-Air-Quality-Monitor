@@ -1,5 +1,3 @@
-# MeghDoot-Weather-App 
-
 # VayuDrishti – Air Quality Monitoring App 🌫️
 
 VayuDrishti is a web application that displays real-time Air Quality Index (AQI) and pollutant levels for cities worldwide.
